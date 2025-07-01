@@ -13,7 +13,7 @@
 
 3.cmd进入目录下
 
-4.python upload.py
+#### 4.python upload.py
 
 
 
