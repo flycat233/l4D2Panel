@@ -1,0 +1,21 @@
+/* 高对比度模式适配 */
+@media (forced-colors: active) {
+    .btn-primary {
+        forced-color-adjust: none;
+        background: highlight;
+    }
+    .progress-bar {
+        background: highlight;
+    }
+}
+
+/* 可选：添加其他自定义样式 */
+.container {
+    padding: 20px;
+}
+.list-group-item {
+    transition: background-color 0.2s;
+}
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}

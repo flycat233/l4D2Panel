@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>猫家花园服务器地图站</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-blue: #2196F3;
+            --light-blue: #BBDEFB;
+            --white: #FFFFFF;
+            --border-radius: 12px;
+            --hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            /* 新增进度条相关颜色变量 */
+            --progress-bg: #e9ecef;
+            --progress-fill: #66BB6A;
+            --progress-text: #fff;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--primary-blue);
+        }
+
+        #dropZone {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed var(--primary-blue);
+            border-radius: var(--border-radius);
+            background-color: var(--light-blue);
+            text-align: center;
+            line-height: 200px;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        #dropZone.dragover {
+            background-color: var(--primary-blue);
+            border-color: var(--light-blue);
+            color: var(--white);
+            transform: scale(1.02);
+        }
+
+        .btn {
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #1976D2;
+            border-color: #1976D2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline-danger {
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-group-item {
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            padding: 1.25rem;
+        }
+
+        .list-group-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .list-group-item a {
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .list-group-item a:hover {
+            color: #1976D2;
+            text-decoration: none;
+        }
+
+        .badge {
+            border-radius: 8px;
+            padding: 0.4em 0.8em;
+            font-size: 0.8em;
+        }
+
+        .btn {
+            min-width: 80px;
+        }
+
+        /* 添加提示框样式 */
+        .alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+
+        /* 新的进度条样式 */
+        .progress {
+            height: 25px;
+            border-radius: 20px;
+            background-color: var(--progress-bg);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            border-radius: 20px;
+            background-color: var(--progress-fill);
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-size: 40px 40px;
+            animation: progress-bar-stripes 1s linear infinite;
+            transition: width 0.6s ease;
+        }
+
+        .progress-text {
+            color: var(--progress-text);
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes progress-bar-stripes {
+            from {
+                background-position: 40px 0;
+            }
+
+            to {
+                background-position: 0 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 添加提示框 -->
+    <div id="alert" class="alert"></div>
+    <div class="container">
+
+        <h1 class="mb-4">📁 猫家花园服务器地图站</h1>
+        <!-- 添加启动和停止服务器的按钮 -->
+        <div class="mb-3">
+            <button type="button" class="btn btn-success" onclick="startServer()">启动服务器</button>
+            <button type="button" class="btn btn-danger" onclick="stopServer()">停止服务器</button>
+            <button type="button" class="btn btn-warning" onclick="requestRestartPassword()">请求重启密码</button>
+        </div>
+        <div id="restartPasswordInput" style="display: none;">
+            <input type="password" id="restartPassword" placeholder="输入重启密码">
+            <button type="button" class="btn btn-warning" onclick="restartServer()">重启服务器</button>
+        </div>
+        <!-- 整合后的上传区域 -->
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            <div id="dropZone" class="mb-3">
+
+                把文件拖到这里，或者点击选择哟~
+            </div>
+            <input type="file" id="fileInput" multiple style="display:none">
+            <button type="submit" class="btn btn-primary btn-block">
+
+                🚀 上传选中文件啦
+            </button>
+            <div class="progress mt-3">
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100">
+                    <span id="progressText" class="progress-text">0%</span>
+                </div>
+            </div>
+        </form>
+        <hr class="my-4">
+
+        <h4 class="mb-3 text-primary">📋 已存文件</h4>
+        <ul class="list-group">
+            {% for file in vpk_files %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <!-- 移除文件名链接的 href 属性，防止点击文件名下载 -->
+                <span class="text-primary font-weight-bold">
+                    {{ file['name'] }}
+                </span>
+                <div class="d-flex align-items-center">
+
+
+                    <span class="badge badge-primary mr-2">📦 {{ file['size'] }}</span>
+                    <span class="badge badge-secondary mr-2">📅 {{ file['upload_time'] }}</span>
+                    <button class="btn btn-outline-primary btn-sm mr-2" onclick="downloadFile('{{ file['name'] }}')">
+
+                        ⬇️ 下载哟
+                    </button>
+                    <form method="post" action="/delete/{{ file['name'] }}" class="delete-form">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDelete(this)">
+
+                            🗑️ 删除啦
+                        </button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        // 拖拽功能实现
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        // 显示提示信息的函数
+        function showAlert(message, type = 'success', shouldReload = false) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            alert.style.display = 'block';
+            const timeoutId = setTimeout(() => {
+                alert.style.display = 'none';
+                if (shouldReload) {
+                    window.location.reload();
+                }
+            }, 3000);
+            return timeoutId;
+        }
+
+        // AJAX上传逻辑
+        function initUpload(formData) {
+            const progressBar = $('#progressBar');
+            const progressText = $('#progressText');
+            progressBar.css('width', '0%').attr('aria-valuenow', 0);
+            progressText.text('0%');
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+
+            // 监听上传进度
+            xhr.upload.addEventListener('progress', function (e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.css('width', percentComplete + '%').attr('aria-valuenow', percentComplete);
+                    progressText.text(Math.round(percentComplete) + '%');
+                }
+            });
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        // 更可爱的上传成功提示，并且设置上传成功后刷新页面
+                        showAlert('哇塞🥰，文件上传成功咯，太棒啦🎉', 'success', true);
+                    } else {
+                        showAlert('呜呜😢，文件上传失败啦，请再试一次哟', 'warning');
+                    }
+                }
+            };
+
+            xhr.send(formData);
+        }
+
+        // 文件处理逻辑
+        function handleFiles(files) {
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('file', file);
+            }
+            initUpload(formData);
+        }
+
+        // 确认删除函数
+        function confirmDelete(button) {
+            const form = button.closest('.delete-form');
+            const alert = document.getElementById('alert');
+            alert.className = 'alert alert-warning';
+            alert.innerHTML = '真的要删除这个文件嘛？<button type="button" class="btn btn-sm btn-danger ml-2" onclick="proceedDelete(this, \'' + form.action + '\')">确认啦</button><button type="button" class="btn btn-sm btn-secondary ml-2" onclick="closeAlert()">取消啦</button>';
+            alert.style.display = 'block';
+        }
+
+        // 新增 proceedDelete 函数
+        function proceedDelete(button, action) {
+            fetch(action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // 尝试获取响应文本
+                        return response.text().then(text => {
+                            throw new Error(`响应不是有效的 JSON 格式，响应内容: ${text}`);
+                        });
+                    }
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 文件删除成功提示，并且设置删除成功后刷新页面
+                        showAlert('文件已经被乖乖删除啦🗑️', 'success', true);
+                    } else {
+                        showAlert('哎呀😣，' + data.message, 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                    showAlert('糟糕😱，' + error.message, 'warning');
+                });
+            closeAlert();
+        }
+
+        // 关闭警告框函数
+        function closeAlert() {
+            const alert = document.getElementById('alert');
+            alert.style.display = 'none';
+        }
+
+        // 下载功能
+        function downloadFile(filename) {
+            window.location.href = `/download/${filename}`;
+        }
+
+        // 表单提交处理
+        $(document).ready(function () {
+            $('#uploadForm').on('submit', function (e) {
+                e.preventDefault();
+                if (fileInput.files.length > 0) {
+                    handleFiles(fileInput.files);
+                }
+            });
+        });
+
+        // 启动服务器函数
+        function startServer() {
+            const password = prompt('请输入启动密码');
+            if (!password) return;
+            fetch('/start_server', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ password: password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showAlert('🎉 服务器已成功启动！', 'success');
+                    } else {
+                        showAlert('😢 ' + data.message, 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                    showAlert('😱 启动服务器时发生错误，请再试一次哟', 'warning');
+                });
+        }
+
+        // 停止服务器函数
+        function stopServer() {
+            const password = prompt('请输入停止密码');
+            if (!password) return;
+            fetch('/stop_server', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ password: password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showAlert('🗑️ 服务器已成功停止！', 'success');
+                    } else {
+                        showAlert('😢 ' + data.message, 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                    showAlert('😱 停止服务器时发生错误，请再试一次哟', 'warning');
+                });
+        }
+
+        // 请求重启密码函数
+        function requestRestartPassword() {
+            fetch('/request_restart_password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showAlert('已发送重启密码到钉钉，请查收', 'success');
+                        document.getElementById('restartPasswordInput').style.display = 'block';
+                    } else {
+                        showAlert('😢 请求重启密码失败，请重试', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                    showAlert('😱 请求重启密码时发生错误，请再试一次哟', 'warning');
+                });
+        }
+
+        // 重启服务器函数
+        function restartServer() {
+            const password = document.getElementById('restartPassword').value;
+            if (!password) {
+                showAlert('请输入重启密码', 'warning');
+                return;
+            }
+            fetch('/restart_server', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ password: password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showAlert('🎉 服务器已成功重启！', 'success');
+                        document.getElementById('restartPasswordInput').style.display = 'none';
+                        document.getElementById('restartPassword').value = '';
+                    } else {
+                        showAlert('😢 ' + data.message, 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('请求出错:', error);
+                    showAlert('😱 重启服务器时发生错误，请再试一次哟', 'warning');
+                });
+        }
+    </script>
+</body>
+
+
+</html>
