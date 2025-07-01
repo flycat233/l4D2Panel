@@ -1,12 +1,18 @@
 # l4D2Panel
 求生之路2服务器地图上传面板
+
 目前功能不完善，用AI调教出来的一个垃圾面板，基于python flask框架
+
 ## 使用方法
 1.在服务端安装python环境，
+
 具体操作详见：
 ### baidu.com
+
 2.将本仓库文件解压进服务器
+
 3.cmd进入目录下
+
 4.python upload.py
 
 
